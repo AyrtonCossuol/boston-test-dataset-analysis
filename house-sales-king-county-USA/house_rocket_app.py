@@ -1,6 +1,8 @@
 import pandas as pd
 import streamlit as st
 
+import plotly.express as px
+
 st.title('House Rocket Company')
 
 st.markdown('Ealcome to House Rockect Data Analyais')
@@ -37,4 +39,20 @@ if is_check:
     st.dataframe(houses)
 
     #draw map
-    
+    fig = px.scatter_mapbox(houses, 
+                          lat = 'lat',
+                          lon = 'long',
+                          size = 'price',
+                          color_continuous_scale = px.colors.cyclical.IceFire,
+                          size_max = 15,
+                          zoom = 10)
+
+    fig.update_layout(mapbox_style = 'open-street-map',
+                        height = 600,
+                        margin = {
+                            'r': 0,
+                            'l': 0,
+                            'b': 0,
+                            't': 0
+                        })
+    st.plotly_chart(fig)
