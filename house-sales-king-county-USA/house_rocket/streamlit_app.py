@@ -1,5 +1,5 @@
 import pandas as pd
-# import geopandas 
+import geopandas 
 import numpy as np
 import streamlit as st
 from streamlit_folium import folium_static
@@ -110,24 +110,24 @@ def portfolio_density(data, geofile):
     df.columns = ['zip', 'price']
 
     df = df.sample(10)
-    # geofile = geofile[geofile['ZIP'].isin(df['zip'].tolist())]
+    geofile = geofile[geofile['ZIP'].isin(df['zip'].tolist())]
 
     region_map = folium.Map(location = [
                                 data['lat'].mean(), 
                                 data['long'].mean()],
                                 default_zoom_star = 15)
                                 
-    # region_map.choropleth(data = df, 
-    #                       geo_data = geofile,
-    #                       columns = ['zip', 'price'],
-    #                       key_on = 'feature.properties.ZIP',
-    #                       fill_color = 'YlOrRd',
-    #                       fill_opacity = 0.7,
-    #                       line_opacity = 0.2,
-    #                       legend_name = 'AVG PRICE')
+    region_map.choropleth(data = df, 
+                          geo_data = geofile,
+                          columns = ['zip', 'price'],
+                          key_on = 'feature.properties.ZIP',
+                          fill_color = 'YlOrRd',
+                          fill_opacity = 0.7,
+                          line_opacity = 0.2,
+                          legend_name = 'AVG PRICE')
 
-    # with c2:
-    #     folium_static(region_map)
+    with c2:
+        folium_static(region_map)
 
     return None
 
@@ -200,10 +200,10 @@ def commercial(data):
 if __name__ == '__main__':
     # Data Extraction
     PATH = 'base/kc_house_data.csv'
-    # url = 'http://opendata.arcgis.com/datasets/83fc2e72903343aabff6de8cb445b81c_2.geoj'
+    url = 'http://opendata.arcgis.com/datasets/83fc2e72903343aabff6de8cb445b81c_2.geoj'
     
     data = get_data(PATH)
-    # geofile = get_geofile(url)
+    geofile = get_geofile(url)
     
     # Transformation
     data = set_feature(data)
