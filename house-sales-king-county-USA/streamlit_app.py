@@ -2,7 +2,9 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from streamlit_folium import folium_static
+
 import folium
+from folium.plugins import MarkerCluster
 
 st.set_page_config(layout = 'wide')
 
@@ -85,5 +87,32 @@ density_map = folium.Map(location = [
                             data['lat'].mean(), 
                             data['long'].mean()],
                             default_zoom_star = 15)
+marker_cluster = MarkerCluster().add_to(density_map)
+
+for name, row in df.iterrows():
+    folium.Marker([row['lat'], row['long']], 
+                    popup = 'Price RS{0} on: {1}. Features: {2} sqft, {3} bedrooms, {4} bethrooms, year built: {5}'.format(row['price'], 
+                                                                                                                           row['date'],
+                                                                                                                           row['sqft_living'],
+                                                                                                                           row['bedrooms'], 
+                                                                                                                           row['bathrooms'],
+                                                                                                                           row['yr_built'])).add_to(marker_cluster)
 with c1:
     folium_static(density_map)
+
+# Region Price Map
+c2.header('Price Density')
+
+df = data[['price', 'zipcode']].groupby('zipcode').mean().reset_index()
+df.columns = ['zip', 'price']
+
+df = df.sample(10)
+
+region_map = folium.Map(location = [
+                            data['lat'].mean(), 
+                            data['long'].mean()],
+                            default_zoom_star = 15)
+                             
+region_map.choropleth(data = df, 
+                      geo_data = geofile,
+                      columns = ['zip', 'price'])
