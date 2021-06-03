@@ -1,11 +1,15 @@
 import pandas as pd
-import geopandas 
+# import geopandas 
 import numpy as np
 import streamlit as st
 from streamlit_folium import folium_static
 
 import folium
 from folium.plugins import MarkerCluster
+
+import plotly.express as px
+
+from datetime import datetime
 
 st.set_page_config(layout = 'wide')
 
@@ -24,8 +28,9 @@ PATH = 'base/kc_house_data.csv'
 data = get_data(PATH)
 
 # get geofile
-url = 'http://opendata.arcgis.com/datasets/83fc2e72903343aabff6de8cb445b81c_2.geoj'
-geofile = get_geofile(url)
+# url = 'http://opendata.arcgis.com/datasets/83fc2e72903343aabff6de8cb445b81c_2.geoj'
+# geofile = get_geofile(url)
+
 # add new feature
 data['price_m2'] = data['price'] / data['sqft_lot']
 
@@ -116,25 +121,91 @@ df = data[['price', 'zipcode']].groupby('zipcode').mean().reset_index()
 df.columns = ['zip', 'price']
 
 df = df.sample(10)
-geofile = geofile[geofile['ZIP'].isin(df['zip'].tolist())]
+# geofile = geofile[geofile['ZIP'].isin(df['zip'].tolist())]
 
 region_map = folium.Map(location = [
                             data['lat'].mean(), 
                             data['long'].mean()],
                             default_zoom_star = 15)
                              
-region_map.choropleth(data = df, 
-                      geo_data = geofile,
-                      columns = ['zip', 'price'],
-                      key_on = 'feature.properties.ZIP',
-                      fill_color = 'YlOrRd',
-                      fill_opacity = 0.7,
-                      line_opacity = 0.2,
-                      legend_name = 'AVG PRICE')
+# region_map.choropleth(data = df, 
+#                       geo_data = geofile,
+#                       columns = ['zip', 'price'],
+#                       key_on = 'feature.properties.ZIP',
+#                       fill_color = 'YlOrRd',
+#                       fill_opacity = 0.7,
+#                       line_opacity = 0.2,
+#                       legend_name = 'AVG PRICE')
 
-with c2:
-    folium_static(region_map)
+# with c2:
+#     folium_static(region_map)
 
 # =============================
-# 
+# Property distributions by commercial category
 # =============================
+st.sidebar.title('Commercial Options')
+st.title('Commercial Attributes')
+
+# ----------- Average Price per Year
+
+data['data'] = pd.to_datetime(data['date'])
+
+# filters
+min_year_built = int(data['yr_built'].min())
+max_year_built = int(data['yr_built'].max())
+
+st.sidebar.subheader('Select Max Year Built')
+f_year_built = st.sidebar.slider('Year Built', min_year_built, max_year_built, min_year_built)
+
+st.header('Average Price per Year Built')
+
+# Data selection
+df = data.loc[data['yr_built'] < f_year_built]
+df = df[['yr_built', 'price']].groupby('yr_built').mean().reset_index()
+
+# PLot 
+fig = px.line(df, x = 'yr_built', y = 'price')
+st.plotly_chart(fig, use_container_width = True)
+
+# ----------- Average Price per Year
+st.header('Average Price per Day')
+st.sidebar.subheader('Select Max Date')
+
+st.write(pd.to_datetime(data['date']).dt.strftime("%Y-%m-%d").min())
+# filters
+min_date = pd.to_datetime(data['date']).dt.strftime("%Y-%m-%d").min()
+max_date = pd.to_datetime(data['date']).dt.strftime("%Y-%m-%d").max()
+
+f_date = st.sidebar.slider('Date', min_date, max_date, min_date)
+
+# Date filtering
+data['price'] = pd.to_datetime(data['date'])
+df = data.loc[data['date'] < f_date]
+df = data[['date', 'price']].groupby('date').mean().reset_index()
+
+# Plot
+fig = px.line(df, x = 'date', y = 'price')
+st.plotly_chart(fig, use_container_width = True)
+
+
+# ==================
+# Histogram
+# ==================
+st.header('Price Distribution')
+st.sidebar.subheader('Select Max Price')
+
+# filter
+min_price = int(data['price'].min())
+max_price = int(data['price'].max())
+mean_price = int(data['price'].mean())
+
+f_price = st.sidebar.slider('Price', min_price, max_price, mean_price)
+df = data.loc[data['price'] < f_price]
+
+# Data Plot
+fig = px.histogram(df, x = 'price', nbins = 50)
+st.plotly_chart(fig, use_container_width = True)
+
+
+
+
