@@ -200,10 +200,10 @@ def commercial(data):
 if __name__ == '__main__':
     # Data Extraction
     PATH = 'base/kc_house_data.csv'
-    # url = 'http://opendata.arcgis.com/datasets/83fc2e72903343aabff6de8cb445b81c_2.geoj'
+    url = 'http://opendata.arcgis.com/datasets/83fc2e72903343aabff6de8cb445b81c_2.geoj'
     
     data = get_data(PATH)
-    # geofile = get_geofile(url)
+    geofile = get_geofile(url)
     
     # Transformation
     data = set_feature(data)
